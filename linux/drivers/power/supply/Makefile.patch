@@ -1,0 +1,9 @@
+diff --git a/Makefile b/Makefile2
+index a26b402..62f40df 100644
+--- a/Makefile
++++ b/Makefile
+@@ -85,3 +85,4 @@ obj-$(CONFIG_CHARGER_TPS65217)	+= tps65217_charger.o
+ obj-$(CONFIG_AXP288_FUEL_GAUGE) += axp288_fuel_gauge.o
+ obj-$(CONFIG_AXP288_CHARGER)	+= axp288_charger.o
+ obj-$(CONFIG_CHARGER_CROS_USBPD)	+= cros_usbpd-charger.o
++obj-$(CONFIG_FUELGAUGE_STC3117)	+= stc3117_battery.o

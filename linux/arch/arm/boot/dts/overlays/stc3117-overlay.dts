@@ -1,0 +1,22 @@
+// Definitions for ST STC3117 I2C fuel gauge on ARM I2C bus.
+/dts-v1/;
+/plugin/;
+
+/{
+	compatible = "brcm,bcm2835";
+
+	fragment@0 {
+		target = <&i2c_arm>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			
+			stc3117@70 {
+				compatible = "st,stc3117";
+				reg = <0x70>;
+				status = "okay";
+			};
+		};
+	};
+};

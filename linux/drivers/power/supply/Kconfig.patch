@@ -1,0 +1,19 @@
+diff --git a/Kconfig b/Kconfig2
+index ff6dab0..592a823 100644
+--- a/Kconfig
++++ b/Kconfig
+@@ -645,4 +645,14 @@ config CHARGER_CROS_USBPD
+ 	  what is connected to USB PD ports from the EC and converts
+ 	  that into power_supply properties.
+ 
++# Fuel Gauge
++config FUELGAUGE_STC3117
++	tristate "STC3117 fuel gauge driver"
++	default n
++	depends on I2C
++	help
++	  Say Y to include support for STC3117 fuel gauge driver for batteries.
++	  This driver source code implements all functions for STC3117.
++
++
+ endif # POWER_SUPPLY
