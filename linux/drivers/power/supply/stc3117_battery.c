@@ -322,7 +322,7 @@ struct stc311x_chip
 {
 	struct i2c_client		*client;
 	struct delayed_work		dwork;  
-	struct power_supply		battery;
+	struct power_supply		*psy_battery;
 	struct stc311x_platform_data	*stc311x_data;
 
 	/* State Of Connect */
@@ -2307,11 +2307,8 @@ static int stc311x_battery_i2c_probe(struct i2c_client *client,
 
 		psy_cfg.drv_data = chip;
 
-		
-		// if (chip->stc311x_data && chip->stc311x_data->power_supply_register)
-			// psy = chip->stc311x_data->power_supply_register(&client->dev, psy_desc, &psy_cfg);
-		// else
-			psy = power_supply_register(&client->dev, psy_desc, &psy_cfg);
+		psy = power_supply_register(&client->dev, psy_desc, &psy_cfg);
+		chip->psy_battery = psy;
 
 		if (IS_ERR(psy))
 		{
@@ -2429,12 +2426,13 @@ static int stc311x_battery_i2c_remove(struct i2c_client *client)
 	i2c_client_copy = chip->client;
 	GasGauge_Stop();
 
-	// if (chip->stc311x_data && chip->stc311x_data->power_supply_unregister)
-		// chip->stc311x_data->power_supply_unregister(&chip->battery);
-	// else
-		power_supply_unregister(&chip->battery);
-	
 
+	if(chip->psy_battery != NULL)
+	{
+		power_supply_unregister(chip->psy_battery);
+		dev_info(&client->dev, "power supply UN-registered");
+	}
+	
 	kfree(chip->stc311x_data);
 	kfree(chip);
 
