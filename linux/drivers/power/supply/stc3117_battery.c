@@ -279,10 +279,10 @@ typedef struct  {
 	int RelaxThreshold;   /* current threshold for VM (mA)  */
 	int VM_TemperaTable[TEMPERAT_SIZE];
 	int CapacityDerating[TEMPERAT_SIZE];
-	int  OCVValue[OCVTAB_SIZE];  //(mV)
-	unsigned char SOCValue[OCVTAB_SIZE];  //(%)
-	int  Ropt;
-	int  Nropt;
+	int OCVValue[OCVTAB_SIZE];  //(mV)
+	int SOCValue[SOCTAB_SIZE];  //(%)
+	int Ropt;
+	int Nropt;
 
 } STC311x_BattDataTypeDef;
 
@@ -743,23 +743,30 @@ static int STC311x_Status(void)
 static void STC311x_SetParam(void)
 {
 	int value;
-	int ii;
+	int i;
 
 	STC31xx_WriteByte(STC311x_REG_MODE,0x01);  /*   set GG_RUN=0 before changing algo parameters */
 
 	/* init OCV curve */
 	{
-		for (ii=0;ii<OCVTAB_SIZE;ii++)
+		unsigned short OcvValue_registers16[OCVTAB_SIZE]; //16bit registers
+		unsigned char  SocValue_registers8[SOCTAB_SIZE];  //8bit registers
+		
+		for (i=0 ; i<OCVTAB_SIZE ; i++)
 		{
-			if (BattData.OCVValue[ii]!=0) //avoid non-initialized values
+			if (BattData.OCVValue[i]!=0) //avoid non-initialized values
 			{
-				STC31xx_WriteWord(STC311x_REG_OCVTAB + ii*2, 
-					BattData.OCVValue[ii]*100/55); //=OCV_mV/0.55 =OCV_mV/(55/100) =OCV_mV*(100/55)
+				OcvValue_registers16[i] = (unsigned short) BattData.OCVValue[i]; //convert int32 to uint16
+				
+				STC31xx_WriteWord(STC311x_REG_OCVTAB + i*2, OcvValue_registers16[i]);
 			}
 		}
-		
-		if (BattData.SOCValue[1]!=0) //avoid non-initialized values
-			STC31xx_Write(SOCTAB_SIZE, STC3117_REG_SOCTAB, (unsigned char *) BattData.SOCValue);
+
+		for (i=0 ; i<SOCTAB_SIZE ; i++)
+		{
+			SocValue_registers8[i] = (unsigned char) BattData.SOCValue[i]; //convert int32 to uint8
+		}
+		STC31xx_Write(SOCTAB_SIZE, STC3117_REG_SOCTAB, SocValue_registers8);
 	}
 
 	/* set alm level if different from default */
@@ -2096,9 +2103,13 @@ static void stc311x_work(struct work_struct *work)
 		for(i=0;i<TEMPERAT_SIZE;i++)
 			GasGaugeData.CapDerating[i] = chip->stc311x_data->CapDerating[i];   
 		
-		/* OCV curve*/
+		/* OCV full curve */
 		for(i=0;i<OCVTAB_SIZE;i++)
-			GasGaugeData.OCVValue[i] = chip->stc311x_data->OCVValue[i];    
+			GasGaugeData.OCVValue[i] = chip->stc311x_data->OCVValue[i];
+		
+		/* SOC table */
+		for(i=0;i<SOCTAB_SIZE;i++)
+			GasGaugeData.SOCValue[i] = chip->stc311x_data->SOCValue[i]; 
 		
 
 		if( chip->stc311x_data->ExternalTemperatureFunc != NULL)
